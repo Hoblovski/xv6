@@ -156,6 +156,40 @@ lcr3(uintp val)
   asm volatile("mov %0,%%cr3" : : "r" (val));
 }
 
+static inline void
+cpuid(uint32 info, uint32 *eaxp, uint32 *ebxp, uint32 *ecxp, uint32 *edxp)
+{
+	uint32 eax, ebx, ecx, edx;
+	asm volatile("cpuid"
+			 : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx)
+			 : "a" (info));
+	if (eaxp)
+		*eaxp = eax;
+	if (ebxp)
+		*ebxp = ebx;
+	if (ecxp)
+		*ecxp = ecx;
+	if (edxp)
+		*edxp = edx;
+}
+
+static inline uint64
+read_msr(uint32 msr)
+{
+	uint32 low, high;
+	asm volatile("rdmsr" : "=a" (low), "=d" (high) : "c" (msr));
+	return low | ((unsigned long)high << 32);
+}
+
+static inline void
+write_msr(uint32 msr, uint64 val)
+{
+	asm volatile("wrmsr"
+		: /* no output */
+		: "c" (msr), "a" (val), "d" (val >> 32)
+		: "memory");
+}
+
 //PAGEBREAK: 36
 // Layout of the trap frame built on the stack by the
 // hardware and by trapasm.S, and passed to trap().

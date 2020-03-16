@@ -1,6 +1,7 @@
 -include local.mk
 
 X64 ?= yes
+VMX ?= yes
 
 ifeq ("$(X64)","yes")
 BITS = 64
@@ -46,6 +47,7 @@ OBJS := \
 	kobj/uart.o\
 	kobj/vectors.o\
 	kobj/vm.o\
+	kobj/vmx.o\
 	$(XOBJS)
 
 ifneq ("$(MEMFS)","")
@@ -208,6 +210,10 @@ ifndef CPUS
 CPUS := 2
 endif
 QEMUOPTS = -net none -hda xv6.img -hdb fs.img -smp $(CPUS) -m 512 $(QEMUEXTRA)
+
+ifeq ("$(VMX)", "yes")
+QEMUOPTS += -cpu qemu64,+vmx -enable-kvm -m 256
+endif
 
 qemu: fs.img xv6.img
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
